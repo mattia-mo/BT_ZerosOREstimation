@@ -12,7 +12,7 @@ library(checkmate)
 set.seed(567)
 
 # N as simulation sample size
-N <-  10000
+N <-  1
 
 # sample sizes of studies
 n_obs <- c(50,100,500)
@@ -237,5 +237,35 @@ states_all <- lapply(k, `[[`, 2) %>%
   rename(rep = V1) %>% 
   mutate(scenario = rep(1:n_scenarios, each = N), .before = "rep")
 
-saveRDS(estimates_all, file = "estimates5.rds")
-saveRDS(states_all, file = "states.rds5")
+
+# divide states data frame into smaller data frames 
+# so that one data frame contains all states of one scenario to avoid storing large files
+states_list <- split(states_all, states_all$scenario)
+for(i in seq_len(n_scenarios)) {
+  filename <- paste0("states/states_", i, ".rds")
+  states_of_scenario <- states_list[[i]]
+  saveRDS(states_of_scenario, file = filename)
+}
+
+# save estimates file
+saveRDS(estimates_all, file = "estimates.rds")
+
+
+
+### how to create a specific table based on the states
+
+# example: recreating table number i of scenario k
+i <- 873
+k <- 7
+
+row_of_example <- estimates_all %>% filter(scenario == k & rep == i)
+# table that should be recreated
+row_of_example$table[[1]]
+
+# recreating the table by using the stored states
+param_of_example <- as.vector(scenarios[k,])
+.Random.seed <- as.integer(states_list[[k]][i,-c(1, 2)])
+recreated_row <- onerep(i, param_of_example$n_obs, param_of_example$p_x, param_of_example$or)
+recreated_table <- recreated_row$table[[1]]
+recreated_table
+
