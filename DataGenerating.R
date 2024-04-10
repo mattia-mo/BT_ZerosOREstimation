@@ -12,7 +12,7 @@ library(checkmate)
 set.seed(567)
 
 # N as simulation sample size
-N <-  1
+N <-  10000
 
 # sample sizes of studies
 n_obs <- c(50,100,500)
